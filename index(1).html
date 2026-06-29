@@ -1,0 +1,15 @@
+<!DOCTYPE html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Weather Dashboard</title>
+<style>body{font-family:Arial;background:#eaf4ff;margin:0}.wrap{max-width:700px;margin:30px auto;background:#fff;padding:20px;border-radius:10px}input{padding:10px;width:70%}button{padding:10px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.card{background:#f5f5f5;padding:10px;border-radius:8px}#msg{color:red}</style></head>
+<body><div class='wrap'><h2>Weather Dashboard</h2><input id='city' placeholder='Enter city'><button id='go'>Search</button><p id='msg'></p><div id='out'></div></div>
+<script>
+async function geocode(city){const r=await fetch('https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(city)+'&count=1');if(!r.ok)throw Error('Network');const j=await r.json();if(!j.results||!j.results.length)throw Error('City not found');return j.results[0];}
+async function weather(lat,lon){const u=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,apparent_temperature,surface_pressure`;const r=await fetch(u);if(!r.ok)throw Error('Weather failed');return await r.json();}
+async function load(){msg.textContent='';out.innerHTML='Loading...';try{let c=city.value.trim();if(!c)throw Error('Enter city');let g=await geocode(c);let w=await weather(g.latitude,g.longitude);let x=w.current;out.innerHTML=`<h3>${g.name}, ${g.country}</h3><div class=grid>
+<div class=card>Temperature: ${x.temperature_2m} °C</div>
+<div class=card>Feels Like: ${x.apparent_temperature} °C</div>
+<div class=card>Humidity: ${x.relative_humidity_2m}%</div>
+<div class=card>Wind: ${x.wind_speed_10m} km/h</div>
+<div class=card>Pressure: ${x.surface_pressure} hPa</div>
+<div class=card>Time: ${x.time}</div></div>`;}catch(e){out.innerHTML='';msg.textContent=e.message;}}
+go.onclick=load;city.addEventListener('keydown',e=>{if(e.key==='Enter')load()});
+</script></body></html>
